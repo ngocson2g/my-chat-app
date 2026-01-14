@@ -1,0 +1,35 @@
+.input-area {
+  padding: 15px;
+  background-color: #242526;
+  border-top: 1px solid #3e4042;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px 15px;
+  background-color: #3a3b3c;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+  color: #e4e6eb;
+  font-size: 0.95rem;
+}
+
+.chat-input:focus {
+  background-color: #4e4f50;
+}
+
+.hidden-input {
+    display: none;
+}
+
+.btn-send {
+    color: #0084ff;
+}
+.btn-send:hover {
+    color: #0056b3;
+    background-color: rgba(0, 132, 255, 0.1);
+}

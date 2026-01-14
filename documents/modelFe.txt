@@ -1,0 +1,18 @@
+src/
+├── assets/             # Ảnh, icon, CSS global
+├── components/         # Các thành phần UI nhỏ (tái sử dụng được)
+│   ├── MessageBubble.jsx  # Bong bóng tin nhắn (Xanh/Xám)
+│   ├── ConversationList.jsx # Danh sách các cuộc trò chuyện bên trái
+│   └── ChatInput.jsx      # Ô nhập liệu
+├── context/            # Quản lý trạng thái toàn cục (Auth, Theme)
+│   └── AuthContext.jsx    # Lưu Token và User info
+├── hooks/              # Logic tách biệt (Custom Hooks)
+│   ├── useWebSocket.js    # Hook kết nối tới Rust Server
+│   └── useChat.js         # Hook gọi API lấy tin nhắn từ Django
+├── pages/              # Các màn hình chính (Route)
+│   ├── LoginPage.jsx
+│   └── ChatDashboard.jsx
+├── services/           # Nơi gọi API (Axios configuration)
+│   └── api.js
+├── App.jsx             # Routing chính
+└── main.jsx

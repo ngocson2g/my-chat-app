@@ -1,0 +1,17 @@
+[package]
+name = "rust_ws"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Web Server & WebSocket
+actix-web = "4"
+actix-ws = "0.2"
+actix-rt = "2" # Runtime
+
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures = "0.3"
+redis = { version = "0.24", features = ["tokio-comp"] }

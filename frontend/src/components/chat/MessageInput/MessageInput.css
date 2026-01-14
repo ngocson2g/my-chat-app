@@ -1,0 +1,81 @@
+/* Container tổng của thanh nhập liệu */
+.chat-input-area {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Khoảng cách giữa các phần tử */
+    padding: 12px 16px;
+    background-color: #18191a; /* Màu nền Dark Mode */
+    border-top: 1px solid #2f3031; /* Đường kẻ ngăn cách mờ */
+    flex-shrink: 0; /* Đảm bảo không bị co lại khi màn hình nhỏ */
+}
+
+/* Nút chọn file (Icon kẹp giấy) */
+.btn-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #0084ff; /* Màu xanh Messenger */
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-upload:hover {
+    background-color: rgba(0, 132, 255, 0.1); /* Hiệu ứng nền mờ khi di chuột */
+}
+
+.btn-upload:active {
+    transform: scale(0.95); /* Hiệu ứng nhấn xuống */
+}
+
+/* Input nhập văn bản */
+.chat-input-area input[type="text"] {
+    flex: 1; /* Chiếm toàn bộ khoảng trống còn lại */
+    background-color: #3a3b3c; /* Màu xám nhẹ cho ô input */
+    border: none;
+    border-radius: 20px; /* Bo tròn kiểu viên thuốc (Pill shape) */
+    padding: 10px 16px;
+    color: #e4e6eb; /* Màu chữ sáng */
+    font-size: 0.95rem;
+    outline: none; /* Bỏ viền xanh mặc định của trình duyệt */
+    transition: background-color 0.2s;
+}
+
+.chat-input-area input[type="text"]:focus {
+    background-color: #4e4f50; /* Sáng hơn một chút khi đang nhập */
+}
+
+.chat-input-area input[type="text"]::placeholder {
+    color: #b0b3b8; /* Màu chữ gợi ý (placeholder) */
+}
+
+/* Nút Gửi (Send Button) */
+.chat-input-area button {
+    background: transparent;
+    border: none;
+    color: #0084ff;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 18px;
+    transition: all 0.2s ease;
+}
+
+.chat-input-area button:hover {
+    background-color: rgba(0, 132, 255, 0.1);
+}
+
+.chat-input-area button:active {
+    transform: scale(0.95);
+}
+
+/* (Tuỳ chọn) Trạng thái disabled nếu ô input rỗng */
+.chat-input-area button:disabled {
+    color: #4b4c4f;
+    cursor: default;
+    background-color: transparent;
+}

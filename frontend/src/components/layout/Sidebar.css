@@ -1,0 +1,119 @@
+.sidebar {
+  width: 320px;
+  background-color: #242526;
+  border-right: 1px solid #3e4042;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 15px;
+  border-bottom: 1px solid #3e4042;
+}
+
+.user-profile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #e4e6eb;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px 8px 35px;
+  border-radius: 20px;
+  border: none;
+  background-color: #3a3b3c;
+  color: #e4e6eb;
+  outline: none;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b0b3b8;
+}
+
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: 0.2s;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.conversation-item:hover {
+  background-color: #3a3b3c;
+}
+
+.conversation-item.active {
+  background-color: rgba(45, 136, 255, 0.15);
+}
+
+.conv-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.conv-name {
+  font-weight: 500;
+  color: #e4e6eb;
+}
+
+.conv-last-msg {
+  font-size: 0.8rem;
+  color: #b0b3b8;
+  margin-top: 2px;
+}
+
+/* Nút icon chung */
+.icon-btn {
+  background: none;
+  border: none;
+  color: #b0b3b8;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #e4e6eb;
+}
+
+.icon-btn.danger {
+  color: #ff4d4f;
+}
+
+.icon-btn.danger:hover {
+    background-color: rgba(255, 77, 79, 0.15);
+}

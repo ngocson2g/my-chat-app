@@ -1,0 +1,26 @@
+/* Wrapper để định vị chấm đỏ */
+.notif-btn-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Chấm đỏ */
+.notif-badge {
+    position: absolute;
+    top: 5px;       /* Căn chỉnh tùy theo kích thước nút của bạn */
+    right: 5px;     /* Căn chỉnh tùy theo kích thước nút của bạn */
+    width: 10px;
+    height: 10px;
+    background-color: #ff3b30; /* Màu đỏ báo hiệu */
+    border-radius: 50%;
+    border: 2px solid #242526; /* Viền trùng màu nền để tạo khoảng cách cắt */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Hiệu ứng nảy lên khi xuất hiện */
+@keyframes popIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}

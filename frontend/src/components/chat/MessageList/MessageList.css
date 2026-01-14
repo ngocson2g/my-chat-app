@@ -1,0 +1,35 @@
+.messages-area {
+  flex: 1; /* Chiếm toàn bộ khoảng trống giữa Header và Input */
+  padding: 20px;
+  overflow-y: auto; /* Chỉ hiện thanh cuộn ở khu vực tin nhắn */
+  overflow-x: hidden; /* Ẩn cuộn ngang */
+  
+  display: flex;
+  flex-direction: column;
+  background-color: #18191a;
+  
+  /* Tạo scrollbar đẹp */
+  scrollbar-width: thin;
+  scrollbar-color: #3e4042 #18191a;
+}
+
+.time-separator {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    opacity: 0.8;
+}
+
+.time-separator span {
+    background-color: rgba(0, 0, 0, 0.3); /* Nền mờ */
+    color: #b0b3b8;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Fix lỗi padding bottom bị mất khi scroll */
+.messages-area > :last-child {
+    margin-bottom: 10px;
+}

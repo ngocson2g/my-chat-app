@@ -1,0 +1,53 @@
+# --- General ---
+.DS_Store
+*.log
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+db.sqlite3
+media/
+staticfiles/
+
+# --- NodeJS / React ---
+node_modules/
+build/
+dist/
+.npm
+.eslintcache
+
+# --- IDE ---
+.vscode/
+.idea/
+
+#rust
+target/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

@@ -1,0 +1,117 @@
+.contacts-container {
+  padding: 30px;
+  height: 100%;
+  overflow-y: auto;
+  color: #e4e6eb;
+}
+
+/* Header nằm ngang để chứa Title và Nút */
+.contacts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #3e4042;
+}
+
+.contacts-header h2 {
+    margin: 0;
+}
+
+/* Nút thêm bạn to, màu xanh */
+.btn-add-friend {
+    background-color: #42b72a; /* Màu xanh lá đặc trưng nút Add */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.2s;
+}
+
+.btn-add-friend:hover {
+    background-color: #36a420;
+}
+
+.contacts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.friend-card {
+  background-color: #242526;
+  border: 1px solid #3e4042;
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 0.2s;
+}
+
+.friend-card:hover {
+  background-color: #3a3b3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.friend-info {
+  margin-top: 15px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.friend-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #e4e6eb;
+}
+
+.friend-username {
+  color: #b0b3b8;
+  font-size: 0.9rem;
+}
+
+.btn-chat {
+  padding: 8px 0;
+  background-color: #2d88ff; /* Màu xanh dương cho nút Chat */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-chat:hover {
+  background-color: #1a73e8;
+}
+
+/* Style cho trạng thái chưa có bạn */
+.empty-contact-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    color: #b0b3b8;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #2d88ff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+}

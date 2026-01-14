@@ -1,0 +1,148 @@
+.page-container {
+    padding: 40px;
+    color: #e4e6eb;
+    height: 100%;
+    overflow-y: auto;
+    background-color: #18191a; /* Đảm bảo nền tối */
+}
+
+.page-title {
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.page-loading, .page-error {
+    padding: 40px;
+    text-align: center;
+    color: #b0b3b8;
+    font-size: 1.2rem;
+}
+
+/* Card chứa thông tin */
+.profile-card {
+    background-color: #242526;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #3e4042;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Avatar Styling */
+.avatar-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+/* Phóng to component UserAvatar lên 2.5 lần */
+.avatar-large-scale {
+    transform: scale(2.5);
+    transform-origin: center;
+}
+
+/* Field items */
+.profile-field {
+    text-align: left;
+    margin-bottom: 20px;
+    background-color: #3a3b3c;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.profile-field:hover {
+    border-color: #4e4f50;
+}
+
+.profile-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #b0b3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.profile-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #e4e6eb;
+}
+
+.profile-value.readonly {
+    color: #0084ff; /* Highlight username */
+}
+
+/* Input khi edit */
+.profile-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #4e4f50;
+    background-color: #242526; /* Màu nền input tối hơn */
+    color: white;
+    font-size: 1.1rem;
+    outline: none;
+    box-sizing: border-box; /* Fix lỗi padding làm tràn width */
+}
+
+.profile-input:focus {
+    border-color: #0084ff;
+    background-color: #18191a;
+}
+
+/* Khu vực nút bấm */
+.profile-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-action {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn-action:active {
+    transform: scale(0.96);
+}
+
+/* Màu từng loại nút */
+.btn-action.edit {
+    background-color: #3a3b3c;
+    color: #e4e6eb;
+    width: 100%; /* Nút edit full width */
+}
+.btn-action.edit:hover {
+    background-color: #4e4f50;
+}
+
+.btn-action.save {
+    background-color: #0084ff;
+    color: white;
+    flex: 2; /* Nút save to hơn chút */
+}
+.btn-action.save:hover {
+    background-color: #0073e6;
+}
+
+.btn-action.cancel {
+    background-color: #3a3b3c;
+    color: #e4e6eb;
+    flex: 1;
+}
+.btn-action.cancel:hover {
+    background-color: #4e4f50;
+}

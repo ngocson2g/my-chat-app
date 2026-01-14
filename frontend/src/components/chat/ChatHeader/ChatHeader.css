@@ -1,0 +1,38 @@
+.chat-header {
+  padding: 10px 20px;
+  background-color: #242526;
+  border-bottom: 1px solid #3e4042;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-shrink: 0; /* Không bị co lại */
+}
+
+.chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+    font-weight: bold;
+    color: #e4e6eb;
+}
+
+.status-online {
+  font-size: 0.75rem;
+  color: #42b72a; /* Màu xanh lá online */
+}
+
+.header-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* Tái sử dụng class .icon-btn từ Sidebar.css hoặc import chung */

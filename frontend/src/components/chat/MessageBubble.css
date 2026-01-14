@@ -1,0 +1,143 @@
+/* src/components/MessageBubble.css */
+.message-row {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.message-row.me {
+  justify-content: flex-end;
+}
+
+.message-row.other {
+  justify-content: flex-start;
+}
+
+.message-content {
+  max-width: 60%;
+  padding: 10px 15px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word; 
+  white-space: pre-wrap; 
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+
+/* Tin của mình: Màu xanh (Giữ nguyên cho nổi) */
+.me .message-content {
+  background-color: #0084ff; /* Messenger blue */
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+/* Tin người khác: Màu xám đen (Thay vì xám trắng) */
+.other .message-content {
+  background-color: #3e4042; /* Màu xám đặc trưng của dark mode */
+  color: #e4e6eb;
+  border-bottom-left-radius: 4px;
+}
+
+.sender-name {
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 4px;
+  color: #b0b3b8; /* Tên người gửi màu xám nhạt */
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.message-content.media-msg {
+    background-color: transparent !important;
+    padding: 0 !important;
+    /* Bỏ max-width ở đây để ảnh bên dưới tự quyết định */
+    max-width: 100%;
+}
+
+.chat-media {
+    max-width: 300px;  /* Chiều rộng tối đa */
+    max-height: 350px; /* Chiều cao tối đa (tránh ảnh dọc quá dài) */
+    
+    width: auto;       /* Tự động co theo tỉ lệ */
+    height: auto;
+    
+    object-fit: cover; /* Cắt ảnh đẹp nếu bị ép tỉ lệ (tùy chọn) */
+    border-radius: 12px;
+    border: 1px solid #3e4042;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Thêm hiệu ứng click vào ảnh (Zoom nhẹ) */
+.chat-media:active {
+    transform: scale(0.98);
+}
+
+/* Audio Player */
+.message-content.audio-msg {
+    width: 300px; /* Audio cần chiều rộng cố định để đẹp */
+    padding: 10px;
+    background-color: #3a3b3c; /* Màu nền cho player */
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-audio {
+    width: 100%;
+    height: 40px;
+}
+
+/* Chỉnh lại màu Audio nếu là tin nhắn của mình */
+.me .message-content.audio-msg {
+    background-color: #0084ff; /* Xanh nếu là mình gửi */
+}
+
+
+.message-content.file-msg {
+    background-color: #3a3b3c;
+    padding: 10px 15px !important;
+    border-radius: 12px;
+    width: 250px;
+    border: 1px solid #3e4042;
+}
+
+.file-attachment {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.file-icon {
+    font-size: 24px;
+    color: #e4e6eb;
+    background: #4e4f50;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #e4e6eb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.download-link {
+    font-size: 0.8rem;
+    color: #2d88ff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.download-link:hover { text-decoration: underline; }

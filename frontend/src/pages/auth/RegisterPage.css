@@ -1,0 +1,73 @@
+/* src/pages/LoginPage.css */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #18191a;
+}
+
+.login-box {
+  background: #242526; /* Surface tối hơn chút */
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Bóng đổ đậm hơn */
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid #3e4042;
+}
+
+.login-box h2 {
+  margin-bottom: 1.5rem;
+  color: #e4e6eb;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form-group label {
+  color: #b0b3b8;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  background-color: #3a3b3c; /* Input tối */
+  border: 1px solid #3e4042;
+  border-radius: 5px;
+  margin-top: 5px;
+  font-size: 1rem;
+  color: #e4e6eb; /* Chữ khi gõ màu trắng */
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #007bff;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff; /* Giữ màu xanh đặc trưng */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+.btn-login:hover {
+  background-color: #0069d9;
+}
+
+.error-msg {
+  color: #ff4d4f;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}

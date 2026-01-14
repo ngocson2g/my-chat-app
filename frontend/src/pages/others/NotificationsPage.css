@@ -1,0 +1,78 @@
+.notif-window {
+    flex: 1;
+    background-color: #18191a;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    color: #e4e6eb;
+}
+
+.notif-header {
+    padding: 20px;
+    border-bottom: 1px solid #3e4042;
+    background-color: #242526;
+}
+
+.notif-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.notif-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 8px;
+    background-color: #242526;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    position: relative;
+}
+
+.notif-item:hover {
+    background-color: #3a3b3c;
+}
+
+.notif-item.unread {
+    background-color: #2e3033; /* Màu sáng hơn chút cho tin chưa đọc */
+    font-weight: 500;
+}
+
+.notif-icon {
+    width: 40px;
+    height: 40px;
+    background-color: #3e4042;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.2rem;
+    color: #2d88ff;
+}
+
+.notif-content p {
+    margin: 0 0 5px 0;
+}
+
+.notif-time {
+    font-size: 0.75rem;
+    color: #b0b3b8;
+}
+
+.unread-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #2d88ff;
+    border-radius: 50%;
+    position: absolute;
+    right: 15px;
+}
+
+.empty-notif {
+    text-align: center;
+    margin-top: 50px;
+    color: #888;
+}
