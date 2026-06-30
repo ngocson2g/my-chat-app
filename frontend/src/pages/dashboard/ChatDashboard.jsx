@@ -20,8 +20,10 @@ const ChatDashboard = () => {
         activeConversation, 
         messages, 
         loading,
+        uploadingFile,
         sendMessage, 
-        sendFile 
+        sendFile,
+        sendOdooTask
     } = useChat();
 
     if (!user) {
@@ -52,12 +54,14 @@ const ChatDashboard = () => {
                             <MessageList 
                                 messages={messages} 
                                 currentUser={user} 
+                                uploadingFile={uploadingFile}
                             />
                         )}
                         
                         <MessageInput 
                             onSendMessage={sendMessage} 
                             onSendFile={sendFile} 
+                            onSendOdooTask={sendOdooTask}
                         />
                     </>
                 ) : (

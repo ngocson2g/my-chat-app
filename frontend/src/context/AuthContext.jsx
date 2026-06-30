@@ -44,6 +44,16 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkAuth();
+
+    // Lắng nghe sự kiện token refresh từ api interceptor
+    const handleTokenRefreshed = (e) => {
+      setToken(e.detail);
+    };
+    window.addEventListener('token-refreshed', handleTokenRefreshed);
+
+    return () => {
+      window.removeEventListener('token-refreshed', handleTokenRefreshed);
+    };
   }, []);
 
   const login = async (username, password) => {

@@ -59,6 +59,8 @@ class Message(models.Model):
         ('video', 'Video'),
         ('file', 'File'),
         ('sticker', 'Sticker'),
+        ('external_task', 'External Task'),
+        ('external_process_task', 'External Process Task'),
     )
     STATUS_CHOICES = (
         ('sent', 'Sent'),
@@ -70,7 +72,7 @@ class Message(models.Model):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     content = models.TextField(null=True, blank=True) # Có thể null nếu chỉ gửi ảnh
-    message_type = models.CharField(max_length=10, choices=MESSAGE_TYPE_CHOICES, default='text')
+    message_type = models.CharField(max_length=50, choices=MESSAGE_TYPE_CHOICES, default='text')
     media_url = models.FileField(upload_to='uploads/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='sent')
@@ -193,3 +195,59 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class ExternalTask(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending Response'),
+        ('responded', 'Responded'),
+        ('failed', 'Delivery Failed'),
+    )
+
+    message = models.OneToOneField(
+        Message,
+        on_delete=models.CASCADE,
+        related_name='external_task',
+        db_constraint=False
+    )
+    task_code = models.CharField(max_length=100, unique=True, db_index=True)
+    title = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    target_odoo_user = models.CharField(max_length=150)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Response from Odoo
+    response_content = models.TextField(null=True, blank=True)
+    responded_by = models.CharField(max_length=150, null=True, blank=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.task_code} - {self.title} ({self.status})"
+
+
+class ExternalProcessTask(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('sent', 'Sent'),
+        ('done', 'Done'),
+        ('failed', 'Failed'),
+    )
+
+    message = models.OneToOneField(
+        Message,
+        on_delete=models.CASCADE,
+        related_name='external_process_task',
+        db_constraint=False
+    )
+    task_code = models.CharField(max_length=100, unique=True, db_index=True)
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.task_code} - {self.name} ({self.status})"

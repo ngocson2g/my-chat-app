@@ -5,21 +5,22 @@ import './Sidebar.css';
 import AddFriendModal from '../common/Modal/AddFriendModal';
 
 // Helper để format nội dung xem trước
-const getPreviewContent = (msg) => {
+const getPreviewContent = (msg, isMe) => {
     if (!msg) return "Chưa có tin nhắn";
     
     // Logic mới: Check msg_type
     switch (msg.message_type) {
-        case 'image': return "[Hình ảnh]";
-        case 'video': return "[Video]";
-        case 'audio': return "[Âm thanh]";
-        case 'file':  return "[Tập tin]";
+        case 'image': return isMe ? "Bạn đã gửi một ảnh" : "Bạn đã nhận được một ảnh";
+        case 'video': return isMe ? "Bạn đã gửi một video" : "Bạn đã nhận được một video";
+        case 'audio': return isMe ? "Bạn đã gửi một đoạn âm thanh" : "Bạn đã nhận được một đoạn âm thanh";
+        case 'file':  return isMe ? "Bạn đã gửi một tệp tin" : "Bạn đã nhận được một tệp tin";
         case 'text':
         default:
             // Nếu tin nhắn text quá dài thì cắt bớt
-            return msg.content.length > 30 
+            const text = msg.content.length > 30 
                 ? msg.content.substring(0, 30) + "..." 
                 : msg.content;
+            return isMe ? `Bạn: ${text}` : text;
     }
 };
 
@@ -40,6 +41,11 @@ const formatTime = (dateString) => {
 const Sidebar = ({ user, logout, conversations, activeChatId, onSelectChat }) => {
 
     const [showAddFriend, setShowAddFriend] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const filteredConversations = conversations.filter(conv => 
+        (conv.conversation_name || "").toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="sidebar">
@@ -69,14 +75,20 @@ const Sidebar = ({ user, logout, conversations, activeChatId, onSelectChat }) =>
 
             <div className="search-container">
             <FiSearch className="search-icon" />
-            <input type="text" placeholder="Tìm kiếm..." className="search-input" />
+            <input 
+                type="text" 
+                placeholder="Tìm kiếm..." 
+                className="search-input" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
             </div>
 
             
         </div>
 
         <div className="conversation-list">
-            {conversations.map(conv => (
+            {filteredConversations.map(conv => (
               <div 
                 key={conv.conversation_id} 
                 className={`conversation-item ${activeChatId === conv.conversation_id ? 'active' : ''}`}
@@ -101,7 +113,7 @@ const Sidebar = ({ user, logout, conversations, activeChatId, onSelectChat }) =>
                       fontWeight: conv.last_message ? 'normal' : 'italic'
                   }}>
                     {conv.last_message 
-                        ? `${conv.last_message.sender === user.username ? 'Bạn: ' : ''}${getPreviewContent(conv.last_message)}` 
+                        ? getPreviewContent(conv.last_message, conv.last_message.sender === user.username) 
                         : "Bắt đầu trò chuyện ngay"}
                   </span>
                 </div>

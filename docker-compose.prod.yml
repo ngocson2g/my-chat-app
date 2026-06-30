@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: chat_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-chat_app_db}
+      POSTGRES_USER: ${DB_USER:-chat_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-chat_admin} -d ${DB_NAME:-chat_app_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: chat_redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+    restart: always
+
+  backend:
+    # IMAGE SẼ ĐƯỢC KÉO TỪ GITHUB CONTAINER REGISTRY BỞI GITHUB ACTIONS
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/chat_backend:latest
+    container_name: chat_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chat-network
+    restart: always
+
+  websocket:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/chat_rust_ws:latest
+    container_name: chat_rust_ws
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chat-network
+    restart: always
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER}/chat_frontend:latest
+    container_name: chat_frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - chat-network
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:
+  static_data:
+
+networks:
+  chat-network:
+    driver: bridge

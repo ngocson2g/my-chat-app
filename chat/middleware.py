@@ -43,3 +43,18 @@ class APILoggingMiddleware:
             print(f"{'='*20} REQUEST END {'='*20}\n")
 
         return response
+
+class MediaFrameExemptMiddleware:
+    """
+    Middleware này cho phép các tệp trong thư mục /media/ được nhúng qua iFrame
+    mà không bị chặn bởi XFrameOptionsMiddleware của Django.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if request.path.startswith('/media/'):
+            # Thiết lập cờ này để XFrameOptionsMiddleware bỏ qua việc gắn X-Frame-Options: DENY
+            response.xframe_options_exempt = True
+        return response

@@ -25,9 +25,9 @@ class WebSocketService {
 
     // Hàm kết nối chính
     connect(username) {
-        // Nếu không có username hoặc đang kết nối rồi thì bỏ qua
+        // Nếu không có username hoặc đang kết nối/đã kết nối thì bỏ qua
         if (!username) return;
-        if (this.socketRef && this.socketRef.readyState === WebSocket.OPEN) {
+        if (this.socketRef && (this.socketRef.readyState === WebSocket.OPEN || this.socketRef.readyState === WebSocket.CONNECTING)) {
             return;
         }
 

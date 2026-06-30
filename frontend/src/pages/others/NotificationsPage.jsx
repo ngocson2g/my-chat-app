@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api'; // Axios instance của bạn
 import { useNavigate } from 'react-router-dom';
 import { FiBell, FiMessageCircle, FiCheck } from "react-icons/fi";
-import Sidebar from '../../components/layout/Sidebar'; // Tái sử dụng Sidebar
 import { useAuth } from '../../context/AuthContext';
 import './NotificationsPage.css';
 
@@ -22,6 +21,7 @@ const NotificationsPage = () => {
     useEffect(() => {
         const handleNewNotif = (e) => {
             const data = e.detail;
+            if (data.sender === user?.username) return; // Bỏ qua tin nhắn tự gửi
             // Tạo một object notification giả lập từ data socket
             const newNotif = {
                 id: Date.now(), // ID tạm
@@ -36,7 +36,7 @@ const NotificationsPage = () => {
 
         window.addEventListener('chat-update', handleNewNotif);
         return () => window.removeEventListener('chat-update', handleNewNotif);
-    }, []);
+    }, [user?.username]);
 
     const handleClickNotif = async (notif) => {
         // Đánh dấu đã đọc (nếu có ID thật từ DB)

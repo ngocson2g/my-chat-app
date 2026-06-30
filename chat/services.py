@@ -21,9 +21,15 @@ class MessageService:
             "created_at": message_instance.created_at.isoformat()
         }
 
-        # 2. Bắn sang Redis (Rust sẽ nhận)
-        channel_name = f"chat_{conversation_id}"
-        self.redis.publish(channel_name, json.dumps(payload))
+        # 2. Bắn sang Redis (Rust sẽ nhận qua kênh chat_global)
+        # BỎ QUA - Đã được xử lý bởi post_save signal trong chat/signals.py
+        # participants = message_instance.conversation.participants.all()
+        # for p in participants:
+        #     redis_payload = {
+        #         "target_user_id": p.username,
+        #         "data": payload
+        #     }
+        #     self.redis.publish("chat_global", json.dumps(redis_payload))
         
         # 3. Logic thông báo (Notification) nếu cần
         # self.notification_service.create_notification(...)

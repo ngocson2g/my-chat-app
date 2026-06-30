@@ -33,6 +33,6 @@ async fn main() {
             ws.on_upgrade(move |socket| ws::user_connected(socket, username, users))
         });
 
-    println!("🚀 Rust WebSocket Server started on port 8080");
-    warp::serve(ws_route).run(([127, 0, 0, 1], 8080)).await;
+    println!("🚀 Rust WebSocket Server started on port 8080 (0.0.0.0)");
+    warp::serve(ws_route).run(([0, 0, 0, 0], 8080)).await;
 }

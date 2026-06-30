@@ -11,11 +11,9 @@ export const useWebSocket = () => {
             socketService.connect(user.username);
         }
 
-        // Cleanup: Khi user logout (user == null) thì ngắt kết nối
+        // Cleanup: Khi user thay đổi hoặc unmount thì ngắt kết nối
         return () => {
-            if (!user) {
-                socketService.disconnect();
-            }
+            socketService.disconnect();
         };
     }, [user]);
 

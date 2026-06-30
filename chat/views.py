@@ -4,8 +4,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import get_user_model
-from .models import Conversation, Message, Attachment
-from .serializers import UserSerializer, ConversationSerializer, MessageSerializer, ContactSerializer
+from django.utils import timezone
+import uuid
+import requests
+import threading
+from .models import Conversation, Message, Attachment, ExternalTask, ExternalProcessTask
+from .serializers import UserSerializer, ConversationSerializer, MessageSerializer, ContactSerializer, ExternalTaskSerializer
 
 from django.db.models import Q
 from rest_framework.decorators import action
@@ -57,11 +61,52 @@ class MessageListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         # Lấy conversation_id từ URL
         conversation_id = self.kwargs['conversation_id']
-        
-        # Kiểm tra xem user có quyền xem conversation này không (nếu cần bảo mật)
-        # return Message.objects.filter(conversation_id=conversation_id, conversation__participants=self.request.user)...
-        
         return Message.objects.filter(conversation_id=conversation_id).order_by('created_at')
+
+    def list(self, request, *args, **kwargs):
+        conversation_id = self.kwargs['conversation_id']
+        page = request.query_params.get('page', '1')
+
+        redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+        cache_key = f"room_messages:{conversation_id}"
+
+        # 1. Nếu là trang đầu tiên, ưu tiên đọc từ Redis Cache
+        if str(page) == '1':
+            try:
+                # Lấy 50 tin nhắn gần nhất từ Redis Sorted Set
+                cached_msgs = redis_client.zrange(cache_key, 0, -1)
+                if cached_msgs:
+                    messages_data = [json.loads(msg.decode('utf-8')) for msg in cached_msgs]
+                    return Response({
+                        "count": len(messages_data),
+                        "next": None,  # Hoặc URL trang 2
+                        "previous": None,
+                        "results": messages_data,
+                        "source": "redis_cache" # Đánh dấu để dễ debug
+                    })
+            except Exception as e:
+                print(f"Redis Cache Error: {e}")
+
+        # 2. Nếu Cache Miss (Hoặc tải trang 2, 3...), lấy từ DB
+        response = super().list(request, *args, **kwargs)
+
+        # 3. Lưu ngược vào Redis (Nếu là trang 1 và Cache bị trống)
+        if str(page) == '1' and response.status_code == 200:
+            try:
+                # Chỉ lấy tối đa 50 tin
+                messages = response.data.get('results', response.data)[:50]
+                if messages:
+                    # Xoá cache cũ
+                    redis_client.delete(cache_key)
+                    # Thêm lại 50 tin vào ZSET
+                    for msg in messages:
+                        import dateutil.parser
+                        score = dateutil.parser.isoparse(msg['created_at']).timestamp()
+                        redis_client.zadd(cache_key, {json.dumps(msg): score})
+            except Exception as e:
+                print(f"Redis Cache Save Error: {e}")
+
+        return response
 
     def perform_create(self, serializer):
         conversation_id = self.kwargs['conversation_id']
@@ -170,14 +215,14 @@ class ContactViewSet(viewsets.ModelViewSet):
         # Kiểm tra xem 2 người này đã có đoạn chat chung nào chưa (loại trừ chat nhóm)
         # Đây là logic đơn giản, kiểm tra chat 1-1
         existing_conversations = Conversation.objects.filter(
-            participants__user=user1, type='individual'
+            participants__user=user1, type='private'
         ).filter(
             participants__user=user2
         ).distinct()
 
         if not existing_conversations.exists():
             # Tạo Conversation mới
-            new_conv = Conversation.objects.create(type='individual')
+            new_conv = Conversation.objects.create(type='private')
             Participant.objects.create(conversation=new_conv, user=user1)
             Participant.objects.create(conversation=new_conv, user=user2)
             print(f"Đã tự động tạo chat giữa {user1.username} và {user2.username}")
@@ -221,7 +266,7 @@ class StartDirectChatView(APIView):
             # 4. Kiểm tra trong các ID chung, cái nào là loại 'individual'
             direct_conv = Conversation.objects.filter(
                 conversation_id__in=common_ids,
-                type='individual'
+                type='private'
             ).first()
 
             if direct_conv:
@@ -230,7 +275,7 @@ class StartDirectChatView(APIView):
             # --- NẾU CHƯA CÓ THÌ TẠO MỚI ---
             
             # Tạo Conversation
-            new_conv = Conversation.objects.create(type='individual')
+            new_conv = Conversation.objects.create(type='private')
             
             # Tạo Participant (Người tham gia)
             Participant.objects.create(conversation=new_conv, user=request.user)
@@ -346,3 +391,411 @@ class LogoutView(APIView):
         response = Response({"message": "Logged out successfully"}, status=200)
         response.delete_cookie('refresh_token')
         return response
+
+class MarkAsReadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, conversation_id):
+        # 1. Update last_read_message for this user in this conversation
+        conversation = get_object_or_404(Conversation, pk=conversation_id)
+        participant = get_object_or_404(Participant, conversation=conversation, user=request.user)
+        
+        last_message = Message.objects.filter(conversation=conversation).order_by('-created_at').first()
+        if last_message:
+            participant.last_read_message = last_message
+            participant.save()
+            
+            # 2. Update status='read' for all messages in this conversation sent by OTHER users
+            # (only those that are not already read)
+            messages_to_update = Message.objects.filter(
+                conversation=conversation, 
+                created_at__lte=timezone.now()
+            ).exclude(sender=request.user).exclude(status='read')
+            
+            if messages_to_update.exists():
+                messages_to_update.update(status='read')
+                
+                # 3. Cập nhật vào Redis Cache để đồng bộ
+                redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+                cache_key = f"room_messages:{conversation_id}"
+                
+                # Lấy tất cả tin nhắn trong cache
+                try:
+                    cached_msgs = redis_client.zrange(cache_key, 0, -1)
+                    if cached_msgs:
+                        redis_client.delete(cache_key) # Xoá cache cũ
+                        for msg_bytes in cached_msgs:
+                            msg_dict = json.loads(msg_bytes.decode('utf-8'))
+                            # Cập nhật status trong cache
+                            if msg_dict.get('sender') != request.user.username and msg_dict.get('status') != 'read':
+                                msg_dict['status'] = 'read'
+                            
+                            import dateutil.parser
+                            score = dateutil.parser.isoparse(msg_dict['created_at']).timestamp()
+                            redis_client.zadd(cache_key, {json.dumps(msg_dict): score})
+                except Exception as e:
+                    print(f"Error updating cache for MarkAsRead: {e}")
+
+                # 4. Broadcast to other participants via Redis Pub/Sub
+                other_participants = Participant.objects.filter(conversation=conversation).exclude(user=request.user)
+                for other in other_participants:
+                    payload = {
+                        "target_user_id": str(other.user.username),
+                        "data": {
+                            "type": "read_receipt",
+                            "conversation_id": str(conversation_id),
+                            "read_by": str(request.user.username),
+                        }
+                    }
+                    redis_client.publish('chat_global', json.dumps(payload))
+                
+        return Response({"status": "success"})
+
+class MarkAsDeliveredView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, message_id):
+        message = get_object_or_404(Message, pk=message_id)
+        
+        # Chỉ đánh dấu đã nhận nếu tin nhắn đang ở trạng thái 'sent' và không phải của chính mình gửi
+        if message.status == 'sent' and message.sender != request.user:
+            message.status = 'delivered'
+            message.save()
+            
+            # Cập nhật cache Redis
+            redis_client = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=0)
+            cache_key = f"room_messages:{message.conversation.conversation_id}"
+            try:
+                cached_msgs = redis_client.zrange(cache_key, 0, -1)
+                if cached_msgs:
+                    redis_client.delete(cache_key)
+                    for msg_bytes in cached_msgs:
+                        msg_dict = json.loads(msg_bytes.decode('utf-8'))
+                        if msg_dict.get('message_id') == str(message_id):
+                            msg_dict['status'] = 'delivered'
+                        
+                        import dateutil.parser
+                        score = dateutil.parser.isoparse(msg_dict['created_at']).timestamp()
+                        redis_client.zadd(cache_key, {json.dumps(msg_dict): score})
+            except Exception as e:
+                print(f"Error updating cache for MarkAsDelivered: {e}")
+
+            # Broadcast sự kiện về cho người gửi
+            payload = {
+                "target_user_id": str(message.sender.username),
+                "data": {
+                    "type": "delivered_receipt",
+                    "message_id": str(message_id),
+                    "conversation_id": str(message.conversation.conversation_id),
+                }
+            }
+            redis_client.publish('chat_global', json.dumps(payload))
+            
+        return Response({"status": "success"})
+
+
+# ── TÍCH HỢP ODOO: GỬI TASK VÀ NHẬN WEBHOOK ───────────────────────────
+
+def refresh_conversation_redis_cache(conversation_id):
+    try:
+        from .utils import RedisClient
+        from .serializers import MessageSerializer
+        redis_client = RedisClient.get_client()
+        cache_key = f"room_messages:{conversation_id}"
+        
+        messages = Message.objects.filter(conversation_id=conversation_id).order_by('created_at')[:50]
+        if messages:
+            redis_client.delete(cache_key)
+            for msg in messages:
+                serializer = MessageSerializer(msg)
+                msg_data = serializer.data
+                score = msg.created_at.timestamp()
+                redis_client.zadd(cache_key, {json.dumps(msg_data, default=str): score})
+    except Exception as e:
+        print(f"Lỗi khi refresh cache Redis: {e}")
+
+
+class SendOdooTaskView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, conversation_id):
+        conversation = get_object_or_404(Conversation, pk=conversation_id)
+        
+        if not Participant.objects.filter(conversation=conversation, user=request.user).exists():
+            return Response({"error": "Bạn không tham gia cuộc hội thoại này"}, status=403)
+            
+        title = request.data.get('title')
+        message_content = request.data.get('message')
+        target_user = request.data.get('target_user')
+        
+        if not title or not message_content or not target_user:
+            return Response({"error": "Thiếu thông tin title, message hoặc target_user"}, status=400)
+            
+        task_code = f"TASK-{uuid.uuid4().hex[:8].upper()}"
+        
+        message = Message.objects.create(
+            conversation=conversation,
+            sender=request.user,
+            content=f"Yêu cầu nhiệm vụ: {title}",
+            message_type='external_task'
+        )
+        
+        external_task = ExternalTask.objects.create(
+            message=message,
+            task_code=task_code,
+            title=title,
+            description=message_content,
+            target_odoo_user=target_user,
+            status='pending'
+        )
+        
+        # Gọi API sang Odoo (Background)
+        def send_to_odoo_async():
+            try:
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f"Bearer {settings.ODOO_API_TOKEN}"
+                }
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "call",
+                    "params": {
+                        "target_user": target_user,
+                        "title": title,
+                        "message": message_content,
+                        "task_code": task_code
+                    }
+                }
+                url = f"{settings.ODOO_API_URL}/api/v1/popup/trigger"
+                resp = requests.post(url, json=payload, headers=headers, timeout=10)
+                if resp.status_code != 200:
+                    print(f"Odoo trigger failed: HTTP {resp.status_code} — {resp.text}")
+                    external_task.status = 'failed'
+                    external_task.save()
+                    refresh_conversation_redis_cache(conversation.conversation_id)
+            except Exception as e:
+                print(f"Error calling Odoo: {e}")
+                external_task.status = 'failed'
+                external_task.save()
+                refresh_conversation_redis_cache(conversation.conversation_id)
+                
+        threading.Thread(target=send_to_odoo_async, daemon=True).start()
+        
+        # Cập nhật cache
+        refresh_conversation_redis_cache(conversation.conversation_id)
+        
+        # Broadcast event new_message sang WebSocket
+        from .utils import RedisClient
+        redis_client = RedisClient.get_client()
+        participants = conversation.participants.all()
+        message_data = MessageSerializer(message).data
+        message_data['type'] = 'new_message'
+        
+        for participant in participants:
+            ws_payload = {
+                "target_user_id": str(participant.username),
+                "data": message_data
+            }
+            redis_client.publish('chat_global', json.dumps(ws_payload, default=str))
+            
+        return Response(MessageSerializer(message).data, status=201)
+
+
+class OdooTaskWebhookView(APIView):
+    permission_classes = [] # Public, auth by Bearer token in headers
+    authentication_classes = []
+    
+    def post(self, request):
+        auth_header = request.headers.get('Authorization')
+        expected_token = f"Bearer {settings.ODOO_WEBHOOK_TOKEN}"
+        if not auth_header or auth_header != expected_token:
+            return Response({"error": "Authentication failed!"}, status=401)
+            
+        task_code = request.data.get('task_code')
+        user = request.data.get('user')
+        response_text = request.data.get('response')
+        responded_at_str = request.data.get('responded_at')
+        
+        if not task_code or not response_text:
+            return Response({"error": "Missing task_code or response"}, status=400)
+            
+        external_task = ExternalTask.objects.filter(task_code=task_code).first()
+        if not external_task:
+            return Response({"error": f"Task not found: {task_code}"}, status=404)
+            
+        from django.utils import timezone
+        from django.utils.dateparse import parse_datetime
+        
+        try:
+            responded_at = parse_datetime(responded_at_str)
+            if not responded_at:
+                responded_at = timezone.now()
+        except Exception:
+            responded_at = timezone.now()
+            
+        external_task.status = 'responded'
+        external_task.response_content = response_text
+        external_task.responded_by = user
+        external_task.responded_at = responded_at
+        external_task.save()
+        
+        message = external_task.message
+        conversation = message.conversation
+        refresh_conversation_redis_cache(conversation.conversation_id)
+        
+        from .utils import RedisClient
+        redis_client = RedisClient.get_client()
+        participants = conversation.participants.all()
+        
+        message_data = MessageSerializer(message).data
+        message_data['type'] = 'task_update'
+        
+        for participant in participants:
+            ws_payload = {
+                "target_user_id": str(participant.username),
+                "data": message_data
+            }
+            redis_client.publish('chat_global', json.dumps(ws_payload, default=str))
+            
+        return Response({"status": "success", "message": f"Task {task_code} updated successfully"})
+
+
+class OdooProcessTaskWebhookView(APIView):
+    permission_classes = []
+    authentication_classes = []
+    
+    def post(self, request):
+        auth_header = request.headers.get('Authorization')
+        expected_token = f"Bearer {settings.ODOO_TASK_MANAGER_WEBHOOK_TOKEN}"
+        if not auth_header or auth_header != expected_token:
+            return Response({"error": "Authentication failed!"}, status=401)
+            
+        task_code = request.data.get('task_code')
+        task_name = request.data.get('task_name')
+        description = request.data.get('description')
+        
+        if not task_code or not task_name:
+            return Response({"error": "Missing task_code or task_name"}, status=400)
+            
+        conversation_id = request.query_params.get('conversation_id')
+        if not conversation_id:
+            first_conv = Conversation.objects.first()
+            if not first_conv:
+                return Response({"error": "No conversations exist in the system"}, status=400)
+            conversation_id = str(first_conv.conversation_id)
+            
+        conversation = get_object_or_404(Conversation, pk=conversation_id)
+        
+        external_process_task = ExternalProcessTask.objects.filter(task_code=task_code).first()
+        
+        is_new = False
+        if external_process_task:
+            external_process_task.name = task_name
+            external_process_task.description = description
+            external_process_task.save()
+            
+            message = external_process_task.message
+            message.content = f"Nhiệm vụ Odoo cập nhật: {task_name}"
+            message.save()
+        else:
+            is_new = True
+            system_user = User.objects.filter(is_superuser=True).first()
+            if not system_user:
+                system_user = User.objects.first()
+                
+            message = Message.objects.create(
+                conversation=conversation,
+                sender=system_user,
+                content=f"Nhiệm vụ Odoo mới: {task_name}",
+                message_type='external_process_task'
+            )
+            
+            external_process_task = ExternalProcessTask.objects.create(
+                message=message,
+                task_code=task_code,
+                name=task_name,
+                description=description,
+                status='sent'
+            )
+            
+        refresh_conversation_redis_cache(conversation.conversation_id)
+        
+        from .utils import RedisClient
+        redis_client = RedisClient.get_client()
+        participants = conversation.participants.all()
+        
+        message_data = MessageSerializer(message).data
+        message_data['type'] = 'new_message' if is_new else 'process_task_update'
+        
+        for participant in participants:
+            ws_payload = {
+                "target_user_id": str(participant.username),
+                "data": message_data
+            }
+            redis_client.publish('chat_global', json.dumps(ws_payload, default=str))
+            
+        return Response({"status": "success", "message": f"Task {task_code} synced successfully"})
+
+
+class UpdateOdooProcessTaskStatusView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, task_code):
+        new_status = request.data.get('status')
+        if not new_status:
+            return Response({"error": "Missing status parameter"}, status=400)
+            
+        external_process_task = get_object_or_404(ExternalProcessTask, task_code=task_code)
+        
+        message = external_process_task.message
+        conversation = message.conversation
+        if not Participant.objects.filter(conversation=conversation, user=request.user).exists():
+            return Response({"error": "Bạn không có quyền cập nhật task này"}, status=403)
+            
+        try:
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f"Bearer {settings.ODOO_TASK_MANAGER_API_TOKEN}"
+            }
+            payload = {
+                "jsonrpc": "2.0",
+                "method": "call",
+                "params": {
+                    "task_code": task_code,
+                    "new_status": new_status
+                }
+            }
+            url = f"{settings.ODOO_API_URL}/api/v1/task/update_status"
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.status_code != 200:
+                print(f"Odoo trigger failed: HTTP {resp.status_code} — {resp.text}")
+                return Response({"error": "Cập nhật trên Odoo thất bại!"}, status=500)
+                
+            resp_data = resp.json()
+            if resp_data.get('result', {}).get('status') == 'error':
+                 return Response({"error": resp_data['result'].get('message')}, status=400)
+                 
+        except Exception as e:
+            print(f"Error calling Odoo: {e}")
+            return Response({"error": "Lỗi kết nối tới Odoo"}, status=500)
+            
+        external_process_task.status = new_status
+        external_process_task.save()
+        
+        refresh_conversation_redis_cache(conversation.conversation_id)
+        
+        from .utils import RedisClient
+        redis_client = RedisClient.get_client()
+        participants = conversation.participants.all()
+        
+        message_data = MessageSerializer(message).data
+        message_data['type'] = 'process_task_update'
+        
+        for participant in participants:
+            ws_payload = {
+                "target_user_id": str(participant.username),
+                "data": message_data
+            }
+            redis_client.publish('chat_global', json.dumps(ws_payload, default=str))
+            
+        return Response({"status": "success", "message": f"Task {task_code} updated to {new_status}"})

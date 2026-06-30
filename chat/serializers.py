@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Conversation, Message, Participant, Attachment, Contact, Device
+from .models import Conversation, Message, Participant, Attachment, Contact, Device, ExternalTask, ExternalProcessTask
 from .models import Notification
 
 User = get_user_model()
@@ -23,15 +23,32 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+class ExternalTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExternalTask
+        fields = [
+            'task_code', 'title', 'description', 'target_odoo_user',
+            'status', 'response_content', 'responded_by', 'responded_at', 'created_at'
+        ]
+
+class ExternalProcessTaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExternalProcessTask
+        fields = [
+            'task_code', 'name', 'description', 'status', 'created_at', 'updated_at'
+        ]
+
 # 2. Serializer cho Tin nhắn
 class MessageSerializer(serializers.ModelSerializer):
     #sender_name = serializers.ReadOnlyField(source='sender.display_name')
 
     sender = serializers.SlugRelatedField(slug_field='username', read_only=True)
     attachments = AttachmentSerializer(many=True, read_only=True)
+    external_task = ExternalTaskSerializer(read_only=True)
+    external_process_task = ExternalProcessTaskSerializer(read_only=True)
     class Meta:
         model = Message
-        fields = ['message_id', 'conversation', 'sender', 'content', 'message_type', 'created_at', 'attachments']
+        fields = ['message_id', 'conversation', 'sender', 'content', 'message_type', 'status', 'created_at', 'attachments', 'external_task', 'external_process_task']
         read_only_fields = ['sender', 'message_id', 'created_at', 'conversation']
 
 # 3. Serializer cho Hội thoại
@@ -70,7 +87,8 @@ class ConversationSerializer(serializers.ModelSerializer):
             return {
                 "content": last_msg.content,
                 "created_at": last_msg.created_at,
-                "sender": last_msg.sender.username
+                "sender": last_msg.sender.username,
+                "message_type": last_msg.message_type
             }
         return None
         
