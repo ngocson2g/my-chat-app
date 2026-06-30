@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: chat_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME:-chat_app_db}
+      POSTGRES_USER: ${DB_USER:-chat_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Sondqnt123$}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-chat_admin} -d ${DB_NAME:-chat_app_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: chat_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chat_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      # Bind mount code để dev hot-reload
+      - .:/app
+      # Persistent volumes cho media và static files
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - chat-network
+
+  websocket:
+    build:
+      context: ./rust_ws
+      dockerfile: Dockerfile
+    container_name: chat_rust_ws
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./rust_ws:/usr/src/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chat-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chat_frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Giúp vite watch file thay đổi trong docker tốt hơn
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      # Anonymous volume để tránh ghi đè node_modules từ host sang container
+      - /app/node_modules
+    networks:
+      - chat-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:
+  static_data:
+
+networks:
+  chat-network:
+    driver: bridge

@@ -41,6 +41,8 @@ api.interceptors.response.use(
                 if (res.status === 200) {
                     const newAccessToken = res.data.access;
                     originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    // Phát sự kiện để cập nhật AuthContext token
+                    window.dispatchEvent(new CustomEvent('token-refreshed', { detail: newAccessToken }));
                     return api(originalRequest);
                 }
             } catch (refreshError) {
@@ -82,7 +84,7 @@ export const uploadFile = async (file) => {
     const formData = new FormData();
     formData.append('file', file);
     const response = await api.post('upload/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined }, // Xoá application/json mặc định, để trình duyệt tự set boundary
     });
     return response.data; 
 };

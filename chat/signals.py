@@ -13,6 +13,8 @@ redis_client = RedisClient.get_client()
 @receiver(post_save, sender=Message)
 def send_message_to_redis(sender, instance, created, **kwargs):
     if created:
+        if instance.message_type in ['external_task', 'external_process_task']:
+            return
         conversation = instance.conversation
         participants = conversation.participants.all()
 
@@ -21,15 +23,38 @@ def send_message_to_redis(sender, instance, created, **kwargs):
         conversation.save(update_fields=['last_message_at'])
         
         # Chuẩn bị dữ liệu gửi đi (Payload cho Chat Realtime)
+        # Sửa cấu trúc giống với Serializer để dùng được cho cả Cache và Socket
         message_data = {
             "type": "new_message",
-            "conversation_id": str(conversation.conversation_id),
+            "message_id": str(instance.message_id),
+            "conversation": str(conversation.conversation_id),
             "content": instance.content,
             "sender": instance.sender.username,
             "created_at": instance.created_at.isoformat(),
             "preview": instance.content[:30] + "..." if len(instance.content) > 30 else instance.content,
-            "message_type": instance.message_type
+            "message_type": instance.message_type,
+            "attachments": [] # Để đơn giản cho cache realtime (có thể serialize thực nếu cần)
         }
+        
+        # --- LƯU CACHE LÊN REDIS CHO TỐI ƯU HIỆU NĂNG ---
+        try:
+            cache_key = f"room_messages:{conversation.conversation_id}"
+            score = instance.created_at.timestamp()
+            
+            # Thêm tin nhắn mới vào ZSET
+            # Tạo copy payload bỏ trường "type" đi (vì API không cần trường này)
+            cache_payload = message_data.copy()
+            del cache_payload["type"]
+            del cache_payload["preview"]
+            
+            redis_client.zadd(cache_key, {json.dumps(cache_payload): score})
+            
+            # Giữ lại tối đa 50 tin nhắn mới nhất
+            # Nghĩa là xoá từ tin đầu tiên (cũ nhất) đến tin thứ 51 từ cuối lên
+            redis_client.zremrangebyrank(cache_key, 0, -51)
+        except Exception as e:
+            print(f"Lỗi khi push Redis Cache: {e}")
+        # -----------------------------------------------
 
         # Duyệt qua tất cả người nhận
         for participant in participants:

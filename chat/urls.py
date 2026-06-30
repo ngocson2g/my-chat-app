@@ -1,7 +1,7 @@
 from django.urls import path, include 
 from rest_framework.routers import DefaultRouter
 from .views import RegisterView, MyConversationListView, MessageListCreateView, UploadAttachmentView, SearchUserView, StartDirectChatView, ContactViewSet
-from .views import UserProfileView, NotificationViewSet
+from .views import UserProfileView, NotificationViewSet, MarkAsReadView, MarkAsDeliveredView, SendOdooTaskView, OdooTaskWebhookView, OdooProcessTaskWebhookView, UpdateOdooProcessTaskStatusView
 
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -38,6 +38,16 @@ urlpatterns = [
     #begin chat
     path('conversations/start/', StartDirectChatView.as_view(), name='start_direct_chat'),
     
+    # mark as read/delivered
+    path('conversations/<uuid:conversation_id>/read/', MarkAsReadView.as_view(), name='mark_as_read'),
+    path('messages/<uuid:message_id>/delivered/', MarkAsDeliveredView.as_view(), name='mark_as_delivered'),
+    
     #prifile
     path('users/me/', UserProfileView.as_view(), name='user_profile'),
+    
+    # Odoo Integration
+    path('conversations/<uuid:conversation_id>/tasks/send/', SendOdooTaskView.as_view(), name='send_odoo_task'),
+    path('webhook/odoo-task-response/', OdooTaskWebhookView.as_view(), name='odoo_task_webhook'),
+    path('webhook/odoo-process-task/', OdooProcessTaskWebhookView.as_view(), name='odoo_process_task_webhook'),
+    path('process-tasks/<str:task_code>/update-status/', UpdateOdooProcessTaskStatusView.as_view(), name='update_odoo_process_task_status'),
 ]

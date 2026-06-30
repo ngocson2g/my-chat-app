@@ -1,7 +1,7 @@
 /* src/components/MessageBubble.css */
 .message-row {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 16px;
   width: 100%;
 }
 
@@ -13,72 +13,103 @@
   justify-content: flex-start;
 }
 
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-width: 65%;
+}
+
+.me .message-wrapper {
+  align-items: flex-end;
+}
+
+.other .message-wrapper {
+  align-items: flex-start;
+}
+
 .message-content {
-  max-width: 60%;
-  padding: 10px 15px;
-  border-radius: 18px;
+  max-width: 100%;
+  padding: 12px 18px;
+  border-radius: 20px;
   position: relative;
   word-wrap: break-word; 
   white-space: pre-wrap; 
   overflow-wrap: break-word;
-  line-height: 1.4;
+  line-height: 1.5;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Tin của mình: Màu xanh (Giữ nguyên cho nổi) */
+.message-status {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.8;
+  margin-top: 4px;
+  margin-right: 4px;
+  font-style: italic;
+  user-select: none;
+}
+
+/* Tin của mình: Gradient sang trọng */
 .me .message-content {
-  background-color: #0084ff; /* Messenger blue */
+  background: var(--primary-gradient);
   color: white;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
 }
 
-/* Tin người khác: Màu xám đen (Thay vì xám trắng) */
+/* Tin người khác: Kính mờ sang trọng */
 .other .message-content {
-  background-color: #3e4042; /* Màu xám đặc trưng của dark mode */
-  color: #e4e6eb;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
   border-bottom-left-radius: 4px;
 }
 
 .sender-name {
   display: block;
-  font-size: 0.75rem;
-  margin-bottom: 4px;
-  color: #b0b3b8; /* Tên người gửi màu xám nhạt */
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  color: var(--text-muted); 
   font-weight: 500;
-  margin-left: 2px;
+  margin-left: 4px;
 }
 
 .message-content.media-msg {
-    background-color: transparent !important;
+    background: transparent !important;
     padding: 0 !important;
-    /* Bỏ max-width ở đây để ảnh bên dưới tự quyết định */
     max-width: 100%;
+    box-shadow: none;
+    border: none;
 }
 
 .chat-media {
-    max-width: 300px;  /* Chiều rộng tối đa */
-    max-height: 350px; /* Chiều cao tối đa (tránh ảnh dọc quá dài) */
-    
-    width: auto;       /* Tự động co theo tỉ lệ */
+    max-width: 320px;
+    max-height: 400px;
+    width: auto;
     height: auto;
-    
-    object-fit: cover; /* Cắt ảnh đẹp nếu bị ép tỉ lệ (tùy chọn) */
-    border-radius: 12px;
-    border: 1px solid #3e4042;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 1px solid var(--border-glass);
     margin-top: 5px;
     display: block;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
 }
 
-/* Thêm hiệu ứng click vào ảnh (Zoom nhẹ) */
 .chat-media:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
 /* Audio Player */
 .message-content.audio-msg {
-    width: 300px; /* Audio cần chiều rộng cố định để đẹp */
-    padding: 10px;
-    background-color: #3a3b3c; /* Màu nền cho player */
-    border-radius: 20px;
+    width: 320px;
+    padding: 12px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border-glass);
+    border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -89,32 +120,38 @@
     height: 40px;
 }
 
-/* Chỉnh lại màu Audio nếu là tin nhắn của mình */
 .me .message-content.audio-msg {
-    background-color: #0084ff; /* Xanh nếu là mình gửi */
+    background: var(--primary-gradient);
+    border: none;
 }
 
 
 .message-content.file-msg {
-    background-color: #3a3b3c;
-    padding: 10px 15px !important;
-    border-radius: 12px;
-    width: 250px;
-    border: 1px solid #3e4042;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px);
+    padding: 12px 16px !important;
+    border-radius: 16px;
+    width: 280px;
+    border: 1px solid var(--border-glass);
+}
+
+.me .message-content.file-msg {
+    background: var(--primary-gradient);
+    border: none;
 }
 
 .file-attachment {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .file-icon {
-    font-size: 24px;
-    color: #e4e6eb;
-    background: #4e4f50;
-    padding: 10px;
-    border-radius: 8px;
+    font-size: 28px;
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 12px;
 }
 
 .file-info {
@@ -124,20 +161,378 @@
 }
 
 .file-name {
-    font-weight: 500;
-    color: #e4e6eb;
+    font-weight: 600;
+    color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 4px;
+    font-size: 0.95rem;
 }
 
 .download-link {
-    font-size: 0.8rem;
-    color: #2d88ff;
+    font-size: 0.85rem;
+    color: var(--text-muted);
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    transition: color 0.2s;
 }
-.download-link:hover { text-decoration: underline; }
+
+.me .download-link {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.download-link:hover { 
+    color: var(--text-main);
+}
+.me .download-link:hover {
+    color: white;
+}
+
+/* Lightbox Phóng to Ảnh */
+.image-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    cursor: zoom-out;
+}
+
+.expanded-image {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.2s ease-out;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    z-index: 10000;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Modal xem PDF */
+.pdf-lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.pdf-container {
+    width: 90vw;
+    max-width: 1200px;
+    height: 90vh;
+    background: #222;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+    animation: zoomIn 0.2s ease-out;
+}
+
+.pdf-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: white;
+}
+
+.file-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.preview-link {
+    background: none;
+    border: none;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.preview-link:hover {
+    color: #45a049;
+}
+
+/* --- External Task Card Styles --- */
+.message-content.external-task-msg {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 380px;
+    width: 100%;
+}
+
+.external-task-card {
+    background: rgba(30, 41, 59, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    overflow: hidden;
+    color: var(--text-main);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    width: 100%;
+}
+
+.external-task-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.task-card-header {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-card-icon {
+    font-size: 1.1rem;
+}
+
+.task-card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+}
+
+.task-card-code {
+    margin-left: auto;
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #38bdf8;
+    font-weight: 600;
+}
+
+.task-card-body {
+    padding: 16px;
+}
+
+.task-title {
+    margin: 0 0 8px 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #f8fafc;
+}
+
+.task-desc {
+    margin: 0 0 12px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.task-assignee {
+    font-size: 0.8rem;
+    display: flex;
+    gap: 6px;
+}
+
+.task-assignee .label {
+    color: var(--text-muted);
+}
+
+.task-assignee .value {
+    color: #f1f5f9;
+    font-weight: 500;
+}
+
+.task-card-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.task-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 30px;
+    padding: 4px 12px;
+}
+
+.task-status-badge.pending {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.task-status-badge.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.task-status-badge.completed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    margin-bottom: 8px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #fbbf24;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.check-icon {
+    font-weight: bold;
+}
+
+.task-response-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.task-response-content {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.task-responder-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+}
+
+/* --- External Process Task Specific Styles --- */
+.external-process-task-card.draft {
+    border-color: rgba(156, 163, 175, 0.3);
+}
+
+.external-process-task-card.sent {
+    border-color: rgba(56, 189, 248, 0.3);
+}
+
+.external-process-task-card.done {
+    border-color: rgba(52, 211, 153, 0.3);
+}
+
+.external-process-task-card.failed {
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.process-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-status-badge.draft {
+    background: rgba(156, 163, 175, 0.15);
+    color: #9ca3af;
+    border: 1px solid rgba(156, 163, 175, 0.25);
+    margin-bottom: 0;
+}
+
+.task-action-btn {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+.task-action-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+}
+
+.task-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #64748b;
+    box-shadow: none;
+}

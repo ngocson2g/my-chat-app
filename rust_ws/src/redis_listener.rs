@@ -3,7 +3,9 @@ use crate::state::Users;
 use futures::StreamExt; // Cần thiết cho pubsub.on_message().next()
 
 pub async fn run(users: Users) {
-    let client = redis::Client::open("redis://127.0.0.1/").expect("Invalid Redis URL");
+    let redis_host = std::env::var("REDIS_HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let redis_url = format!("redis://{}/", redis_host);
+    let client = redis::Client::open(redis_url).expect("Invalid Redis URL");
     let mut con = client.get_async_connection().await.expect("Cannot connect to Redis");
     let mut pubsub = con.into_pubsub();
 

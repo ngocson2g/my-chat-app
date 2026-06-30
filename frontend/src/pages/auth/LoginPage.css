@@ -1,73 +1,110 @@
-/* src/pages/LoginPage.css */
+/* src/pages/auth/LoginPage.css */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #18191a;
+  background-color: transparent;
 }
 
 .login-box {
-  background: #242526; /* Surface tối hơn chút */
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); /* Bóng đổ đậm hơn */
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: var(--shadow-glass);
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   text-align: center;
-  border: 1px solid #3e4042;
+  border: 1px solid var(--border-glass);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 4px;
+  background: var(--primary-gradient);
 }
 
 .login-box h2 {
-  margin-bottom: 1.5rem;
-  color: #e4e6eb;
+  margin-bottom: 2rem;
+  color: var(--text-main);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  font-size: 2rem;
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   text-align: left;
 }
 
 .form-group label {
-  color: #b0b3b8;
+  color: var(--text-muted);
   font-size: 0.9rem;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
 }
 
 .form-input {
   width: 100%;
-  padding: 10px;
-  background-color: #3a3b3c; /* Input tối */
-  border: 1px solid #3e4042;
-  border-radius: 5px;
-  margin-top: 5px;
+  padding: 14px 16px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
   font-size: 1rem;
-  color: #e4e6eb; /* Chữ khi gõ màu trắng */
+  color: var(--text-main);
   outline: none;
+  transition: all 0.3s ease;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .form-input:focus {
-  border-color: #007bff;
+  border-color: var(--primary);
+  background-color: rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-glow);
 }
 
 .btn-login {
   width: 100%;
-  padding: 10px;
-  background-color: #007bff; /* Giữ màu xanh đặc trưng */
+  padding: 14px;
+  background: var(--primary-gradient);
   color: white;
   border: none;
-  border-radius: 5px;
-  font-size: 1rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s;
-  margin-top: 10px;
+  transition: all 0.3s ease;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .btn-login:hover {
-  background-color: #0069d9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+}
+
+.btn-login:active {
+  transform: translateY(0);
 }
 
 .error-msg {
-  color: #ff4d4f;
-  margin-bottom: 10px;
+  color: #ef4444;
+  margin-bottom: 15px;
   font-size: 0.9rem;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }

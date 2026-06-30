@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'chat',
     'corsheaders',
 ]
@@ -54,7 +55,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware', # Đã bật lại bảo mật hệ thống
+    'chat.middleware.MediaFrameExemptMiddleware', # Middleware cấp quyền iFrame riêng cho thư mục media
     'chat.middleware.APILoggingMiddleware',
 ]
 
@@ -116,6 +118,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -154,15 +157,14 @@ AUTH_USER_MODEL = 'chat.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6379
+REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
 
 
 #tăng 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 209715200 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 209715200
 #dev mode
-CORS_ALLOW_ALL_ORIGINS = True
 
 
 
@@ -196,3 +198,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173", # URL của Frontend (Vite)
     "http://127.0.0.1:5173",
 ]
+
+# 3. Cấu hình tích hợp Odoo
+ODOO_API_URL = os.getenv('ODOO_API_URL', 'http://localhost:8069')
+ODOO_API_TOKEN = os.getenv('ODOO_API_TOKEN', 'MY_POPUP_SECRET_KEY')
+ODOO_WEBHOOK_TOKEN = os.getenv('ODOO_WEBHOOK_TOKEN', 'MY_SECURE_WEBHOOK_TOKEN_123')
+
+# Tích hợp external_task_manager (Odoo 19)
+ODOO_TASK_MANAGER_API_TOKEN = os.getenv('ODOO_TASK_MANAGER_API_TOKEN', 'MY_SECURE_WEBHOOK_TOKEN_123')
+ODOO_TASK_MANAGER_WEBHOOK_TOKEN = os.getenv('ODOO_TASK_MANAGER_WEBHOOK_TOKEN', 'MY_SECURE_WEBHOOK_TOKEN_123')
